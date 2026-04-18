@@ -1,0 +1,8 @@
+id,name,x,y,creationDate,price,unitOfMeasure,orgId,orgName,orgFullName,employeesCount,orgType,street,locX,locY,locZ
+7,priars,10,5.0,2026-04-11T12:10:38.533153,100.0,KILOGRAMS,3,100,HELLO,1000,TRUST,A=PIS,10.0,400,20
+8,privet,10,5.0,2026-04-11T12:16:47.145671,100.0,,,,,,,,,,
+5,Wireless Mouse,3,75.5,2024-03-19T16:20,2500.0,MILLILITERS,50,AccessoryInc,Accessory Incorporated,300,PRIVATE_LIMITED_COMPANY,Gagarina Ave.,55.0,37000000,25
+4,Desk Lamp,8,120.0,2024-03-18T11:45,3500.0,SQUARE_METERS,40,LightCorp,Lighting Corporation,75,TRUST,Pushkina St.,59.95,60600000,50
+3,Office Chair,5,275.25,2024-03-17T09:15,15000.5,CENTIMETERS,30,FurnitureCo,Furniture Company Ltd,120,OPEN_JOINT_STOCK_COMPANY,Kievskaya St.,50.45,30500000,100
+2,Smartphone X,12,300.0,2024-03-16T10:00,59990.0,METERS,20,MobileTech,Mobile Technologies Inc,500,PRIVATE_LIMITED_COMPANY,Tverskaya St.,55.76,37600000,200
+1,Laptop Pro,10,250.5,2024-03-15T14:30,99999.99,KILOGRAMS,1,TechCorp,Tech Corporation LLC,250,TRUST,Lenina St.,55.75,37617000,150
