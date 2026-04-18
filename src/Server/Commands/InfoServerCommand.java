@@ -1,35 +1,22 @@
 package Server.Commands;
 
-import Model.Managers.CollectionManager;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
 import java.time.format.DateTimeFormatter;
 
-public class InfoCommand implements Command {
-    public static String name = "info";
-    private final CollectionManager collectionManager;
-    private static final DateTimeFormatter FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    public InfoCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
-    }
+public class InfoServerCommand implements ServerCommand {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public boolean execute(String[] args) {
-        System.out.println("Информация о коллекции:");
-        System.out.println("Тип коллекции: " + collectionManager.getCollection().getClass());
-        System.out.println("Дата инициализации: " + collectionManager.getInitializationDate().format(FORMATTER));
-        System.out.println("Количество элементов: " + collectionManager.getCollection().size());
-        return true;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Вывести информацию о коллекции (тип, дата инициализации, количество)";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
+        String info = String.format("Тип коллекции: %s\nДата инициализации: %s\nКоличество элементов: %d",
+                collectionManager.getCollection().getClass().getSimpleName(),
+                collectionManager.getInitializationDate().format(FORMATTER),
+                collectionManager.getCollection().size()
+        );
+        return new CommandResponse(true, info);
     }
 }

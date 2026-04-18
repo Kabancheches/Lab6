@@ -1,49 +1,49 @@
-package src.Server.Controller;
+package Server.Managers;
 
-import Controller.Commands.Command;
+import Common.Model.Enums.CommandType;
+import Server.Commands.*;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.EnumMap;
 import java.util.Map;
 
 public class CommandManager {
-    private final Map<String, Command> commands;
+    private final Map<CommandType, ServerCommand> commands = new EnumMap<>(CommandType.class);
+    private final CollectionManager collectionManager;
+    private final FileManager fileManager;
 
-    public CommandManager() {
-        this.commands = new HashMap<>();
+    public CommandManager(CollectionManager collectionManager, FileManager fileManager) {
+        this.collectionManager = collectionManager;
+        this.fileManager = fileManager;
+        registerCommands();
     }
 
-    public void registerCommand(String name, Command command) {
-        commands.put(name.toLowerCase(), command);
+    private void registerCommands() {
+        commands.put(CommandType.TEST, new TestServerCommand());
+        commands.put(CommandType.HELP, new HelpServerCommand());
+        commands.put(CommandType.INFO, new InfoServerCommand());
+        commands.put(CommandType.SHOW, new ShowServerCommand());
+        commands.put(CommandType.ADD, new AddServerCommand());
+        commands.put(CommandType.UPDATE, new UpdateIdServerCommand());
+        commands.put(CommandType.REMOVE_BY_ID, new RemoveByIdServerCommand());
+        commands.put(CommandType.CLEAR, new ClearServerCommand());
+        commands.put(CommandType.SAVE, new SaveServerCommand());
+        commands.put(CommandType.EXIT, new ExitServerCommand());
+        commands.put(CommandType.ADD_IF_MIN, new AddIfMinServerCommand());
+        commands.put(CommandType.REMOVE_GREATER, new RemoveGreaterServerCommand());
+        commands.put(CommandType.REMOVE_LOWER, new RemoveLowerServerCommand());
+        commands.put(CommandType.FILTER_BY_PRICE, new FilterByPriceServerCommand());
+        commands.put(CommandType.FILTER_GREATER_THAN_PRICE, new FilterGreaterThanPriceServerCommand());
+        commands.put(CommandType.PRINT_FIELD_DESCENDING_UNIT_OF_MEASURE, new PrintFieldDescendingUnitOfMeasureServerCommand());
     }
 
-    public void executeCommand(String input) {
-        if (input == null || input.trim().isEmpty()) {
-            return;
-        }
-
-        String[] parts = input.trim().split("\\s+", 2);
-        String commandName = parts[0].toLowerCase();
-
-        Command command = commands.get(commandName);
+    public CommandResponse dispatch(CommandRequest request) {
+        CommandType type = request.getCommandType();
+        ServerCommand command = commands.get(type);
         if (command == null) {
-            System.out.println("Неизвестная команда: " + commandName);
-            System.out.println("Введите 'help' для получения справки.");
-            return;
+            return new CommandResponse(false, "Команда не поддерживается сервером: " + type);
         }
-
-        String[] args;
-        if (parts.length > 1) {
-            args = ("cmd " + parts[1]).split("\\s+");
-        } else {
-            args = new String[]{"cmd"};
-        }
-
-        command.execute(args);
-    }
-
-    public List<Command> getAllCommands() {
-        return new ArrayList<>(commands.values());
+        return command.execute(request, collectionManager, fileManager);
     }
 }

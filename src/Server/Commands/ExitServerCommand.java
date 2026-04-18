@@ -1,27 +1,15 @@
 package Server.Commands;
 
-public class ExitCommand implements Command {
-    public static String name = "exit";
-    private boolean needExit = false;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
+
+public class ExitServerCommand implements ServerCommand {
 
     @Override
-    public boolean execute(String[] args) {
-        System.out.println("Завершение программы...");
-        needExit = true;
-        return true;
-    }
-
-    public boolean isNeedExit() {
-        return needExit;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Завершить программу (без сохранения в файл)";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fileManager) {
+        System.out.println("Клиент завершает работу");
+        return new CommandResponse(true, "Прощай легенда.");
     }
 }

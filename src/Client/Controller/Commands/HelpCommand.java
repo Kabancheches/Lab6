@@ -1,31 +1,34 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Controller.CommandManager;
-
-import java.util.List;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
 public class HelpCommand implements Command {
-    public static String name = "help";
-    private final CommandManager commandManager;
+    public static final String name = "help";
+    private final ClientNetManager netManager;
 
-    public HelpCommand(CommandManager commandManager) {
-        this.commandManager = commandManager;
+    public HelpCommand(ClientNetManager netManager) {
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
-        System.out.println("Доступные команды:");
-        System.out.println("------------------");
-        List<Command> commands = commandManager.getAllCommands();
-        for (Command cmd : commands) {
-            System.out.printf("%s - %s%n", cmd.getName(), cmd.getDescription());
+        try {
+            CommandRequest request = new CommandRequest(CommandType.HELP, null);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
+        } catch (Exception e) {
+            System.err.println("Ошибка: " + e.getMessage());
+            return false;
         }
-        return true;
     }
 
     @Override
     public String getDescription() {
-        return "Вывести справку по доступным командам";
+        return "Вывести справку по командам";
     }
 
     @Override

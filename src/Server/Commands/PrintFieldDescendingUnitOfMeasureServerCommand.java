@@ -1,38 +1,32 @@
 package Server.Commands;
 
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
+import Common.Model.Classes.Product;
+import Common.Model.Enums.UnitOfMeasure;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-public class PrintFieldDescendingUnitOfMeasureCommand implements Command {
-    private final CollectionManager collectionManager;
-    public static String name = "print_field_descending_unit_of_measure";
-    public PrintFieldDescendingUnitOfMeasureCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
-    }
-
+public class PrintFieldDescendingUnitOfMeasureServerCommand implements ServerCommand {
     @Override
-    public boolean execute(String[] args) {
-        List<Product> collection = new ArrayList<>(collectionManager.getCollection());
-        collection.sort(Comparator.reverseOrder());
-
-        System.out.println("Значения полей unitOfMeasure в порядке убывания Product:");
-        for (Product product : collection) {
-            System.out.println(product.getUnitOfMeasure());
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
+        Set<UnitOfMeasure> units = new TreeSet<>(Comparator.reverseOrder());
+        for (Product p : collectionManager.getCollection()) {
+            if (p.getUnitOfMeasure() != null) {
+                units.add(p.getUnitOfMeasure());
+            }
         }
-        return true;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Вывести значения поля unitOfMeasure всех элементов в порядке убывания";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        if (units.isEmpty()) {
+            return new CommandResponse(true, "Нет данных о единицах измерения.");
+        }
+        StringBuilder sb = new StringBuilder("Единицы измерения в порядке убывания:\n");
+        for (UnitOfMeasure u : units) {
+            sb.append(u.name()).append("\n");
+        }
+        return new CommandResponse(true, sb.toString());
     }
 }

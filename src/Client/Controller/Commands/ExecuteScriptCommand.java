@@ -1,14 +1,14 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Controller.CommandManager;
-
+import Client.Controller.CommandManager;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class ExecuteScriptCommand implements Command {
+    public static final String name = "execute_script";
     private final CommandManager commandManager;
-    public static String name = "execute_script";
+
     public ExecuteScriptCommand(CommandManager commandManager) {
         this.commandManager = commandManager;
     }
@@ -16,42 +16,35 @@ public class ExecuteScriptCommand implements Command {
     @Override
     public boolean execute(String[] args) {
         if (args.length < 2) {
-            System.out.println("Команда: execute_script <file_name>, где <file_name> - это путь до файла.");
+            System.out.println("Использование: execute_script <file_name>");
             return false;
         }
-
         String fileName = args[1];
-
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
             int lineNumber = 0;
-
-            System.out.println("Начало выполнения скрипта в файле: " + fileName);
+            System.out.println("Выполнение скрипта из файла: " + fileName);
             while ((line = reader.readLine()) != null) {
                 lineNumber++;
                 line = line.trim();
-
-                if (line.isEmpty() ||line.startsWith("//") || line.startsWith("#")) {
-                    continue;
-                }
-
+                if (line.isEmpty() || line.startsWith("//") || line.startsWith("#")) continue;
                 if (!line.startsWith("execute_script")) {
-                    System.out.println("Номер команды: " + lineNumber + ". Выполнение команды: " + line);
+                    System.out.println("Строка " + lineNumber + ": " + line);
                     commandManager.executeCommand(line);
                 } else {
-                    System.out.println("Номер команды: " + lineNumber + ". Команда вызовет рекурсию пропускаем: " + line);
+                    System.out.println("Строка " + lineNumber + ": рекурсия пропущена");
                 }
             }
             return true;
         } catch (IOException e) {
-            System.out.println("[ОШИБКА] Ошибка чтения файла: " + e.getMessage());
+            System.out.println("Ошибка чтения файла: " + e.getMessage());
             return false;
         }
     }
 
     @Override
     public String getDescription() {
-        return "Считать и исполнить скрипт из указанного файла";
+        return "Выполнить скрипт из файла";
     }
 
     @Override

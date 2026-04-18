@@ -1,11 +1,11 @@
-package Server.Controller.Commands;
+package Client.Controller.Commands;
 
+import Common.Model.Classes.Product;
+import Common.Model.Enums.CommandType;
 import Client.Net.ClientNetManager;
-import Model.Classes.Product;
-import View.InputReader;
-import common.Model.Enums.CommandType; // импорт общего enum
-import Server.Net.CommandRequest;
-import Server.Net.CommandResponse;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
+import Client.View.InputReader;
 
 public class AddCommand implements Command {
     public static final String name = "add";
@@ -22,18 +22,17 @@ public class AddCommand implements Command {
         try {
             System.out.println("Введите данные нового продукта:");
             Product product = inputReader.readProduct();
-            // ID и Organization ID будут сгенерированы на сервере, поэтому здесь их не устанавливаем
             product.setId(null);
             if (product.getManufacturer() != null) {
                 product.getManufacturer().setId(null);
             }
-
+            System.out.println(product);
             CommandRequest request = new CommandRequest(CommandType.ADD, product);
             CommandResponse response = netManager.sendRequest(request);
             System.out.println(response.getMessage());
             return response.isSuccess();
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            System.err.println("Ошибка: " + e.getMessage());
             return false;
         }
     }

@@ -1,6 +1,8 @@
-package Client.Model.Enums;
+package Common.Model.Enums;
 
-public enum UnitOfMeasure {
+import java.io.Serializable;
+
+public enum UnitOfMeasure implements Serializable {
     KILOGRAMS,
     METERS,
     CENTIMETERS,

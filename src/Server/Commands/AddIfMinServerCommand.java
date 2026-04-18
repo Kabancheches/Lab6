@@ -1,64 +1,39 @@
 package Server.Commands;
 
-import Model.Classes.Organization;
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-import View.InputReader;
+import Common.Model.Classes.Product;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import java.util.PriorityQueue;
-
-public class AddIfMinCommand implements Command {
-    public static String name = "";
-    private final CollectionManager collectionManager;
-    private final InputReader inputReader;
-
-    public AddIfMinCommand(CollectionManager collectionManager, InputReader inputReader) {
-        this.collectionManager = collectionManager;
-        this.inputReader = inputReader;
-    }
-
-    private boolean ifLowerThanMin(Product product) {
-        float productPrice = product.getPrice();
-        PriorityQueue<Product> collectionCopy = collectionManager.getCollection();
-        for (int i = 0;i < collectionCopy.size(); i++){
-            if (productPrice > collectionCopy.poll().getPrice()){
-                return false;
-            }
+public class AddIfMinServerCommand implements ServerCommand {
+    @Override
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
+        Object arg = request.getArgument();
+        if (!(arg instanceof Product)) {
+            return new CommandResponse(false, "Требуется Product");
         }
-        return true;
-    }
-
-    @Override
-    public boolean execute(String[] args) {
-        try {
-            Product product = inputReader.readProduct();
-            product.setId(collectionManager.getFirstNotUsedIdProduct());
-            Organization manufacturer = product.getManufacturer();
-            if (manufacturer != null) {
-                manufacturer.setId(collectionManager.getFirstNotUsedIdOrganization());
+        Product product = (Product) arg;
+        if (collectionManager.getCollection().isEmpty()) {
+            Long newId = collectionManager.getFirstNotUsedIdProduct();
+            product.setId(newId);
+            if (product.getManufacturer() != null) {
+                product.getManufacturer().setId(collectionManager.getFirstNotUsedIdOrganization());
             }
-
-            if (ifLowerThanMin(product)) {
-                collectionManager.addProduct(product);
-                System.out.println("Продукт добавлен (его цена меньше минимальной).");
-                return true;
-            } else {
-                System.out.println("Продукт не добавлен (его цена больше минимальной).");
-                return false;
-            }
-        } catch (Exception e) {
-            System.out.println("[ОШИБКА] " + e.getMessage());
-            return false;
+            collectionManager.addProduct(product);
+            return new CommandResponse(true, "Продукт добавлен (коллекция была пуста)");
         }
-    }
-
-    @Override
-    public String getDescription() {
-        return "Добавить новый элемент, если его значение меньше наименьшего";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        float minPrice = collectionManager.getCollection().peek().getPrice();
+        if (product.getPrice() < minPrice) {
+            Long newId = collectionManager.getFirstNotUsedIdProduct();
+            product.setId(newId);
+            if (product.getManufacturer() != null) {
+                product.getManufacturer().setId(collectionManager.getFirstNotUsedIdOrganization());
+            }
+            collectionManager.addProduct(product);
+            return new CommandResponse(true, "Продукт добавлен (цена меньше минимальной)");
+        } else {
+            return new CommandResponse(false, "Цена не минимальна, продукт не добавлен");
+        }
     }
 }

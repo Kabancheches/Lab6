@@ -1,4 +1,4 @@
-package Client.Net;
+package Common.Net;
 
 import java.io.Serializable;
 

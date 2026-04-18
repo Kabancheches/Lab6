@@ -1,61 +1,28 @@
 package Server.Commands;
 
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
+import Common.Model.Classes.Product;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class FilterGreaterThanPriceCommand implements Command {
-
-    private final CollectionManager collectionManager;
-    public static String name = "filter_greater_than_price";
-
-    public FilterGreaterThanPriceCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
-    }
-
-    private List<Product> productsFilteredGreaterThanPrice(float price) {
-        List<Product> collectionCopy = List.copyOf(collectionManager.getCollection());
-        List<Product> correctProducts = new ArrayList<>();
-        for (Product product : collectionCopy) {
-            if (product.getPrice() > price) {
-                correctProducts.add(product);
+public class FilterGreaterThanPriceServerCommand implements ServerCommand {
+    @Override
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
+        Object arg = request.getArgument();
+        if (!(arg instanceof Number)) {
+            return new CommandResponse(false, "Требуется цена (число)");
+        }
+        float price = ((Number) arg).floatValue();
+        StringBuilder sb = new StringBuilder();
+        for (Product p : collectionManager.getCollection()) {
+            if (p.getPrice() > price) {
+                sb.append(p).append("\n");
             }
         }
-        return correctProducts;
-    }
-
-    @Override
-    public boolean execute(String[] args) {
-        if (args.length < 2) {
-            System.out.println("Использование: filter_greater_than_price <price>");
-            return false;
+        if (sb.length() == 0) {
+            return new CommandResponse(true, "Продуктов с ценой выше " + price + " не найдено");
         }
-
-        try {
-            float price = Float.parseFloat(args[1]);
-            List<Product> filtered = productsFilteredGreaterThanPrice(price);
-            if (filtered.isEmpty()) {
-                System.out.println("Продукты с ценой больше " + price + " не найдены.");
-            } else {
-                System.out.println("Продукты с ценой больше " + price + ":");
-                filtered.forEach(System.out::println);
-            }
-            return true;
-        } catch (NumberFormatException e) {
-            System.out.println("[ОШИБКА] Некорректная цена.");
-            return false;
-        }
-    }
-
-    @Override
-    public String getDescription() {
-        return "Вывести элементы с ценой больше заданной";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        return new CommandResponse(true, sb.toString());
     }
 }

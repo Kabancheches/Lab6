@@ -1,8 +1,9 @@
-package src.Client.View;
+package Client.View;
 
-import Client.Model.Classes.*;
-import Client.Model.Enums.*;
-import Client.Model.Validator.Validator;
+import Common.Model.Classes.*;
+import Common.Model.Enums.OrganizationType;
+import Common.Model.Enums.UnitOfMeasure;
+import Common.Model.Validator.Validator;
 
 import java.io.BufferedReader;
 import java.io.IOException;

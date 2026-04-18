@@ -1,34 +1,34 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
 public class PrintFieldDescendingUnitOfMeasureCommand implements Command {
-    private final CollectionManager collectionManager;
-    public static String name = "print_field_descending_unit_of_measure";
-    public PrintFieldDescendingUnitOfMeasureCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
+    public static final String name = "print_field_descending_unit_of_measure";
+    private final ClientNetManager netManager;
+
+    public PrintFieldDescendingUnitOfMeasureCommand(ClientNetManager netManager) {
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
-        List<Product> collection = new ArrayList<>(collectionManager.getCollection());
-        collection.sort(Comparator.reverseOrder());
-
-        System.out.println("Значения полей unitOfMeasure в порядке убывания Product:");
-        for (Product product : collection) {
-            System.out.println(product.getUnitOfMeasure());
+        try {
+            CommandRequest request = new CommandRequest(CommandType.PRINT_FIELD_DESCENDING_UNIT_OF_MEASURE, null);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
+        } catch (Exception e) {
+            System.err.println("Ошибка: " + e.getMessage());
+            return false;
         }
-        return true;
     }
 
     @Override
     public String getDescription() {
-        return "Вывести значения поля unitOfMeasure всех элементов в порядке убывания";
+        return "Вывести единицы измерения в порядке убывания";
     }
 
     @Override

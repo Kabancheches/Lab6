@@ -1,8 +1,10 @@
-package Client.Model.Classes;
+package Common.Model.Classes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Location {
+public class Location implements Serializable {
+    private static final long serialVersionUID = 1L;
     private float x;
     private Long y; //Поле не может быть null
     private int z;

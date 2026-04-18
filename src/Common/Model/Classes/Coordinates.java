@@ -1,8 +1,10 @@
-package Client.Model.Classes;
+package Common.Model.Classes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Coordinates {
+public class Coordinates implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int x; //Максимальное значение поля 12
     private float y;
 

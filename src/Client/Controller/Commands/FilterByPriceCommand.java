@@ -1,49 +1,35 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-
-import java.util.ArrayList;
-import java.util.List;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
 public class FilterByPriceCommand implements Command {
-    private final CollectionManager collectionManager;
-    public static String name = "filter_by_price";
-    public FilterByPriceCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
-    }
+    public static final String name = "filter_by_price";
+    private final ClientNetManager netManager;
 
-    private ArrayList<Product> productsFilteredByPrice(float price) {
-        List<Product> collectionCopy = List.copyOf(collectionManager.getCollection());
-        ArrayList<Product> correctProducts = new ArrayList<>();
-        for (Product product : collectionCopy) {
-            if (product.getPrice() == price) {
-                correctProducts.add(product);
-            }
-        }
-        return correctProducts;
+    public FilterByPriceCommand(ClientNetManager netManager) {
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
         if (args.length < 2) {
-            System.out.println("Некорректный ввод данных. Введите filter_by_price <price>, где <price> - это цена.");
+            System.err.println("Использование: filter_by_price <price>");
             return false;
         }
-
         try {
             float price = Float.parseFloat(args[1]);
-            ArrayList<Product> filtered = productsFilteredByPrice(price);
-
-            if (filtered.isEmpty()) {
-                System.out.println("Продукты с ценой " + price + " не найдены.");
-            } else {
-                System.out.println("Продукты с ценой " + price + ":");
-                filtered.forEach(System.out::println);
-            }
-            return true;
+            CommandRequest request = new CommandRequest(CommandType.FILTER_BY_PRICE, price);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
         } catch (NumberFormatException e) {
-            System.out.println("[ОШИБКА] Некорректная цена.");
+            System.err.println("Цена должна быть числом");
+            return false;
+        } catch (Exception e) {
+            System.err.println("Ошибка: " + e.getMessage());
             return false;
         }
     }

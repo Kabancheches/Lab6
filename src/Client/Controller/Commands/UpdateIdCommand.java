@@ -1,60 +1,53 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Model.Classes.Organization;
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-import View.InputReader;
-
+import Common.Model.Classes.Product;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
+import Client.View.InputReader;
 
 public class UpdateIdCommand implements Command {
-    private final CollectionManager collectionManager;
+    public static final String name = "update";
     private final InputReader inputReader;
-    public static String name = "update";
-    public UpdateIdCommand(CollectionManager collectionManager, InputReader inputReader) {
-        this.collectionManager = collectionManager;
+    private final ClientNetManager netManager;
+
+    public UpdateIdCommand(InputReader inputReader, ClientNetManager netManager) {
         this.inputReader = inputReader;
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
         if (args.length < 2) {
-            System.err.println("[ОШИБКА] Использование: update <id>, где <id> - это id объекта класса Product, который вы хотите обновить.");
+            System.err.println("Использование: update <id>");
             return false;
         }
-
         try {
             long id = Long.parseLong(args[1]);
-            System.out.println("Обновление продукта с ID: " + id);
-
-            Product existingProduct = collectionManager.getProductById(id);
-            if (existingProduct == null) {
-                System.err.println("[ОШИБКА] Продукт с ID " + id + " не найден.");
-                return false;
-            }
-
+            System.out.println("Введите новые данные для продукта с ID " + id);
             Product newProduct = inputReader.readProduct();
             newProduct.setId(id);
-            Organization manufacturer = newProduct.getManufacturer();
-            if (manufacturer != null) {
-                manufacturer.setId(collectionManager.getFirstNotUsedIdOrganization());
+            if (newProduct.getManufacturer() != null) {
+                newProduct.getManufacturer().setId(null);
             }
-            newProduct.setCreationDate(existingProduct.getCreationDate());
-            collectionManager.removeById(id);
-            collectionManager.addProduct(newProduct);
-            return true;
-
+            Object[] updateData = new Object[]{id, newProduct};
+            CommandRequest request = new CommandRequest(CommandType.UPDATE, updateData);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
         } catch (NumberFormatException e) {
-            System.err.println("[ОШИБКА] Некорректный ID. Должно быть число.");
+            System.err.println("ID должен быть числом");
             return false;
         } catch (Exception e) {
-            System.err.println("[ОШИБКА] Ошибка при обновлении: " + e.getMessage());
+            System.err.println("Ошибка: " + e.getMessage());
             return false;
         }
     }
 
     @Override
     public String getDescription() {
-        return "Обновить значение элемента коллекции по его id";
+        return "Обновить элемент по id";
     }
 
     @Override

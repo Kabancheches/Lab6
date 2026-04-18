@@ -1,7 +1,8 @@
-package src.Server.Managers;
+package Server.Managers;
 
 
-import Server.Model.Classes.*;
+
+import Common.Model.Classes.Product;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,13 +25,12 @@ public class CollectionManager {
     public CollectionManager(PriorityQueue<Product> collection) {
         this.collection = new PriorityQueue<>(collection);
         this.initializationDate = LocalDateTime.now();
-        for (int i = 0; i < this.collection.size(); i++) {
-            Product product = collection.poll();
+        this.collection.stream().forEach(product -> {
             idListProduct.add(product.getId());
             if (product.getManufacturer() != null) {
                 idListOrganization.add(product.getManufacturer().getId());
             }
-        }
+        });
         idListProduct.sort(null);
         idListOrganization.sort(null);
     }
@@ -64,13 +64,7 @@ public class CollectionManager {
     public boolean checkIsIdUsed(ArrayList<Long> idList, Product product) {
         boolean bool = true;
         Long productId = product.getId();
-        for (Long Id : idList) {
-            if (Objects.equals(Id, productId)) {
-                bool = false;
-                break;
-            }
-        }
-        return bool;
+        return idList.stream().anyMatch(id -> Objects.equals(id,productId));
     }
 
     public boolean checkIsIdUsedProduct(Product product) {
@@ -94,12 +88,7 @@ public class CollectionManager {
     }
 
     public Product getProductById(Long id) {
-        for (Product product : collection) {
-            if (product.getId().equals(id)) {
-                return product;
-            }
-        }
-        return null;
+        return collection.stream().filter(product -> Objects.equals(product.getId(), id)).findFirst().orElse(null);
     }
 
     public boolean removeById(Long id) {

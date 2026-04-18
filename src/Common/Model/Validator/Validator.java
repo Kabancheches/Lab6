@@ -3,7 +3,10 @@ package Common.Model.Validator;
 
 import Common.Model.Classes.*;
 
-public class Validator {
+import java.io.Serializable;
+
+public class Validator implements Serializable {
+    private static final long serialVersionUID = 1L;
     public String coordinatesPrompt = "Значение поле X должно быть не больше 12.";
 
     public boolean validateWithIdProduct(Product product) {

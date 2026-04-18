@@ -1,124 +1,100 @@
-package src.Client;
+package Client;
 
-import Client.Model.Classes.Product;
+import Client.Controller.CommandManager;
+import Client.Controller.Commands.*;
+import Client.Net.ClientNetManager;
 import Client.View.ConsoleUI;
 import Client.View.InputReader;
-import Server.Managers.CollectionManager;
-import Server.Managers.FileManager;
+import Common.Model.Enums.CommandType;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.PriorityQueue;
 
 public class ClientMain {
+    private static final int DEFAULT_PORT = 6778;
+    private static final String DEFAULT_HOST = "localhost";
+
     public static void main(String[] args) {
-        ConsoleUI ui = new ConsoleUI();
         InputReader inputReader = new InputReader();
-        CollectionManager collectionManager = new CollectionManager(new PriorityQueue<>());
-        FileManager fileManager = null;
 
-        ui.printSeparator();
-        System.out.println("Программа управления коллекцией продуктов");
-        ui.printSeparator();
+        String str = "Клиент управления коллекцией продуктов";
+        System.out.println("=".repeat(str.length()));
+        System.out.println(str);
+        System.out.println("=".repeat(str.length()));
 
-        String fileName = null;
-        if (args.length >= 1) {
-            fileName = args[0];
-            ui.printInfo("Используется файл из аргументов: " + fileName);
-            try {
-                fileManager = new FileManager(fileName);
-                PriorityQueue<Product> products = fileManager.readCollection();
-                collectionManager = new CollectionManager(products);
-                ui.printInfo("Введите 'help' для получения справки.");
-                ui.printSuccess("Коллекция загружена из файла: " + fileName);
-            } catch (IllegalArgumentException e) {
-                ui.printInfo("Введите 'help' для получения справки.");
-                ui.printError("Ошибка при загрузке данных из файла: " + e.getMessage());
-                collectionManager = new CollectionManager();
+        String host = DEFAULT_HOST;
+        int port = DEFAULT_PORT;
+
+        try {
+            System.out.print("Введите адрес сервера (или нажмите Enter для localhost): ");
+            String inputHost = inputReader.readLine();
+            if (inputHost != null && !inputHost.trim().isEmpty()) {
+                host = inputHost.trim();
             }
-        } else {
-            while (fileName == null || fileName.isBlank()) {
-                try {
-                    fileName = inputReader.readString("Введите путь до файла для загрузки коллекции:",false).trim();
-                    if (fileName.isBlank()) {
-                        ui.printError("Имя файла не может быть пустым.");
-                    } else {
-                        File file = new File(fileName);
-                        if (file.exists()) {
-                            try {
-                                fileManager = new FileManager(fileName);
-                                PriorityQueue<Product> products = fileManager.readCollection();
-                                collectionManager = new CollectionManager(products);
-                                ui.printSuccess("Коллекция загружена из файла: " + fileName);
-                                ui.printInfo("Введите 'help' для получения справки.");
-                            } catch (IllegalArgumentException e) {
-                                ui.printError("Ошибка при загрузке данных из файла: " + e.getMessage());
-                                collectionManager = new CollectionManager();
-                                ui.printInfo("Введите 'help' для получения справки.");
-                            }
-                            break;
-                        } else {
-                            ui.printError("Такого файла не существует.");
-                            String yesNo = null;
-                            while (yesNo == null) {
-                                yesNo = inputReader.readString("Хотите создать файл с этим путём? (y/n - выход)", false);
-                                if (yesNo.equals("y")) {
-                                    try {
-                                        file.createNewFile();
-                                        ui.printSuccess("Файл создан.");
-                                        fileManager = new FileManager(fileName);
-                                        ui.printInfo("Введите 'help' для получения справки.");
-                                    } catch (IOException e) {
-                                        ui.printError(e.getMessage());
-                                    }
-                                } else if (yesNo.equals("n")) {
-                                    System.exit(1);
-                                    break;
-                                } else {yesNo = null;}
-                            }
-                        }
-                    }
 
-                } catch (IOException e) {
-                    System.err.println("Ошибка: " + e);
-                }
+            System.out.print("Введите порт сервера (или нажмите Enter для " + DEFAULT_PORT + "): ");
+            String inputPort = inputReader.readLine();
+            if (inputPort != null && !inputPort.trim().isEmpty()) {
+                port = Integer.parseInt(inputPort.trim());
             }
+        } catch (IOException | NumberFormatException e) {
+            System.out.println("Ошибка ввода, используются значения по умолчанию: " + DEFAULT_HOST + ":" + DEFAULT_PORT);
         }
 
-        CommandManager commandManager = new CommandManager();
-        ExitCommand exitCommand = new ExitCommand();
 
+        System.out.println("Подключение к серверу " + host + ":" + port);
 
+        try {
+            ClientNetManager netManager = new ClientNetManager(host, port);
+            CommandManager commandManager = new CommandManager();
+            ExitCommand exitCommand = new ExitCommand(netManager);
 
-        registerCommands(commandManager, collectionManager, fileManager,
-                inputReader, exitCommand);
+            registerCommands(commandManager, inputReader, netManager, exitCommand);
 
-        runInteractiveMode(commandManager, inputReader, exitCommand);
+            CommandRequest testRequest = new CommandRequest(CommandType.TEST, "LazeevTop");
+            CommandResponse response = null;
+            try {
+                response = netManager.sendRequest(testRequest);
+            } catch (ClassNotFoundException e) {
+                System.out.println("Этого не должно было произойти" +e.getMessage());
+            }
+            if (response != null && response.isSuccess()) {
+                System.out.println("Соединение установлено. Введите 'help' для справки.");
+            } else {
+                System.out.println("Не удалось подключиться к серверу. Программа завершена.");
+                System.exit(1);
+            }
+            runInteractiveMode(commandManager, inputReader, exitCommand);
+
+            netManager.close();
+        } catch (IOException e) {
+            System.out.println("Не удалось подключиться к серверу: " + e.getMessage());
+            System.exit(1);
+        }
     }
 
-
     private static void registerCommands(CommandManager manager,
-                                         CollectionManager collectionManager,
-                                         FileManager fileManager,
                                          InputReader inputReader,
+                                         ClientNetManager netManager,
                                          ExitCommand exitCommand) {
-        manager.registerCommand(HelpCommand.name, new HelpCommand(manager));
-        manager.registerCommand(InfoCommand.name, new InfoCommand(collectionManager));
-        manager.registerCommand(ShowCommand.name, new ShowCommand(collectionManager));
-        manager.registerCommand(AddCommand.name, new AddCommand(collectionManager, inputReader));
-        manager.registerCommand(UpdateIdCommand.name, new UpdateIdCommand(collectionManager, inputReader));
-        manager.registerCommand(RemoveByIdCommand.name, new RemoveByIdCommand(collectionManager));
-        manager.registerCommand(ClearCommand.name, new ClearCommand(collectionManager));
-        manager.registerCommand(SaveCommand.name, new SaveCommand(collectionManager, fileManager));
+        manager.registerCommand(TestCommand.name, new TestCommand(netManager));
+        manager.registerCommand(HelpCommand.name, new HelpCommand(netManager));
+        manager.registerCommand(InfoCommand.name, new InfoCommand(netManager));
+        manager.registerCommand(ShowCommand.name, new ShowCommand(netManager));
+        manager.registerCommand(AddCommand.name, new AddCommand(inputReader, netManager));
+        manager.registerCommand(UpdateIdCommand.name, new UpdateIdCommand(inputReader, netManager));
+        manager.registerCommand(RemoveByIdCommand.name, new RemoveByIdCommand(netManager));
+        manager.registerCommand(ClearCommand.name, new ClearCommand(netManager));
         manager.registerCommand(ExecuteScriptCommand.name, new ExecuteScriptCommand(manager));
         manager.registerCommand(ExitCommand.name, exitCommand);
-        manager.registerCommand(AddIfMinCommand.name, new AddIfMinCommand(collectionManager, inputReader));
-        manager.registerCommand(RemoveGreaterCommand.name, new RemoveGreaterCommand(collectionManager, inputReader));
-        manager.registerCommand(RemoveLowerCommand.name, new RemoveLowerCommand(collectionManager, inputReader));
-        manager.registerCommand(FilterByPriceCommand.name, new FilterByPriceCommand(collectionManager));
-        manager.registerCommand(FilterGreaterThanPriceCommand.name, new FilterGreaterThanPriceCommand(collectionManager));
+        manager.registerCommand(AddIfMinCommand.name, new AddIfMinCommand(inputReader, netManager));
+        manager.registerCommand(RemoveGreaterCommand.name, new RemoveGreaterCommand(inputReader, netManager));
+        manager.registerCommand(RemoveLowerCommand.name, new RemoveLowerCommand(inputReader, netManager));
+        manager.registerCommand(FilterByPriceCommand.name, new FilterByPriceCommand(netManager));
+        manager.registerCommand(FilterGreaterThanPriceCommand.name, new FilterGreaterThanPriceCommand(netManager));
         manager.registerCommand(PrintFieldDescendingUnitOfMeasureCommand.name,
-                new PrintFieldDescendingUnitOfMeasureCommand(collectionManager));
+                new PrintFieldDescendingUnitOfMeasureCommand(netManager));
     }
 
     private static void runInteractiveMode(CommandManager commandManager, InputReader inputReader, ExitCommand exitCommand) {
@@ -126,8 +102,11 @@ public class ClientMain {
             while (!exitCommand.isNeedExit()) {
                 System.out.print("> ");
                 String input = inputReader.readLine();
-
-                if (input == null || input.trim().isEmpty()) {
+                if (input == null) {
+                    System.out.println("Вы нажали ctrl+D, программа анигилируется...");
+                    break;
+                }
+                if (input.trim().isEmpty()) {
                     continue;
                 }
                 commandManager.executeCommand(input.trim());

@@ -1,37 +1,34 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-
-import java.util.PriorityQueue;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
 public class ShowCommand implements Command {
-    private final CollectionManager collectionManager;
-    public static String name = "show";
-    public ShowCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
+    public static final String name = "show";
+    private final ClientNetManager netManager;
+
+    public ShowCommand(ClientNetManager netManager) {
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
-        if (collectionManager.isEmpty()) {
-            System.out.println("Коллекция пуста.");
-            return true;
+        try {
+            CommandRequest request = new CommandRequest(CommandType.SHOW, null);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
+        } catch (Exception e) {
+            System.err.println("Ошибка: " + e.getMessage());
+            return false;
         }
-
-        System.out.println("Элементы коллекции:");
-        System.out.println("-------------------");
-
-        PriorityQueue<Product> collectionCopy = new PriorityQueue<>(collectionManager.getCollection());
-        while (!collectionCopy.isEmpty()) {
-            System.out.println(collectionCopy.poll());
-        }
-        return true;
     }
 
     @Override
     public String getDescription() {
-        return "Вывести все элементы коллекции в строковом представлении";
+        return "Показать все элементы коллекции";
     }
 
     @Override

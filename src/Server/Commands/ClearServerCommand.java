@@ -1,30 +1,14 @@
 package Server.Commands;
 
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import Model.Managers.CollectionManager;
-
-public class ClearCommand implements Command {
-    public static String name = "clear";
-    private final CollectionManager collectionManager;
-
-    public ClearCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
-    }
-
+public class ClearServerCommand implements ServerCommand {
     @Override
-    public boolean execute(String[] args) {
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
         collectionManager.clear();
-        System.out.println("Коллекция успешно очищена.");
-        return true;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Очистить коллекцию";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        return new CommandResponse(true, "Коллекция очищена");
     }
 }

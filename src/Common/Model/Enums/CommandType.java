@@ -1,8 +1,9 @@
-package Client.Model.Enums;
+package Common.Model.Enums;
 
 import java.io.Serializable;
 
 public enum CommandType implements Serializable {
+    TEST("test"),
     HELP("help"),
     INFO("info"),
     SHOW("show"),
@@ -12,6 +13,7 @@ public enum CommandType implements Serializable {
     CLEAR("clear"),
     SAVE("save"),
     EXIT("exit"),
+    SERVEREXIT("exit"),
     ADD_IF_MIN("add_if_min"),
     REMOVE_GREATER("remove_greater"),
     REMOVE_LOWER("remove_lower"),

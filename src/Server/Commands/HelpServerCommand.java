@@ -1,35 +1,20 @@
 package Server.Commands;
 
-import Controller.CommandManager;
+import Common.Model.Enums.CommandType;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-import java.util.List;
-
-public class HelpCommand implements Command {
-    public static String name = "help";
-    private final CommandManager commandManager;
-
-    public HelpCommand(CommandManager commandManager) {
-        this.commandManager = commandManager;
-    }
-
+public class HelpServerCommand implements ServerCommand {
     @Override
-    public boolean execute(String[] args) {
-        System.out.println("Доступные команды:");
-        System.out.println("------------------");
-        List<Command> commands = commandManager.getAllCommands();
-        for (Command cmd : commands) {
-            System.out.printf("%s - %s%n", cmd.getName(), cmd.getDescription());
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fileManager) {
+        StringBuilder stringBuilder = new StringBuilder("Доступные команды:\n");
+        for (CommandType type : CommandType.values()) {
+            if (type != CommandType.EXECUTE_SCRIPT) {
+                stringBuilder.append("  ").append(type.getCommandName()).append("\n");
+            }
         }
-        return true;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Вывести справку по доступным командам";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        return new CommandResponse(true, stringBuilder.toString());
     }
 }

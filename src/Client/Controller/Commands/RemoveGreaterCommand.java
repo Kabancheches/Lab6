@@ -1,59 +1,44 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Model.Classes.Organization;
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-import View.InputReader;
-
-import java.util.ArrayList;
-import java.util.List;
+import Common.Model.Classes.Product;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
+import Client.View.InputReader;
 
 public class RemoveGreaterCommand implements Command {
-    public static String name = "remove_greater";
-    private final CollectionManager collectionManager;
+    public static final String name = "remove_greater";
     private final InputReader inputReader;
+    private final ClientNetManager netManager;
 
-    public RemoveGreaterCommand(CollectionManager collectionManager, InputReader inputReader) {
-        this.collectionManager = collectionManager;
+    public RemoveGreaterCommand(InputReader inputReader, ClientNetManager netManager) {
         this.inputReader = inputReader;
-    }
-
-    private ArrayList<Product> productsFilteredGreaterThanPrice(float price) {
-        List<Product> collectionCopy = List.copyOf(collectionManager.getCollection());
-        ArrayList<Product> correctProducts = new ArrayList<>();
-        for (Product product : collectionCopy) {
-            if (product.getPrice() > price) {
-                correctProducts.add(product);
-            }
-        }
-        return correctProducts;
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
         try {
+            System.out.println("Введите продукт для сравнения (будут удалены элементы с большей ценой):");
             Product product = inputReader.readProduct();
-            product.setId(collectionManager.getFirstNotUsedIdProduct());
-            Organization manufacturer = product.getManufacturer();
-            if (manufacturer != null) {
-                manufacturer.setId(collectionManager.getFirstNotUsedIdOrganization());
+            product.setId(null);
+            if (product.getManufacturer() != null) {
+                product.getManufacturer().setId(null);
             }
-            ArrayList<Product> filteredProducts = productsFilteredGreaterThanPrice(product.getPrice());
-            for (Product deletingProduct: filteredProducts) {
-                collectionManager.removeById(deletingProduct.getId());
-            }
-            System.out.println("Удалено элементов у которых цена выше " + product.getPrice() + ": " + filteredProducts.size());
-            filteredProducts.forEach(System.out::println);
-            return true;
+            CommandRequest request = new CommandRequest(CommandType.REMOVE_GREATER, product);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
         } catch (Exception e) {
-            System.err.println("[ОШИБКА] " + e.getMessage());
+            System.err.println("Ошибка: " + e.getMessage());
             return false;
         }
     }
 
     @Override
     public String getDescription() {
-        return "Удалить из коллекции все элементы, превышающие заданный";
+        return "Удалить элементы, превышающие заданный";
     }
 
     @Override

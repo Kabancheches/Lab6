@@ -1,50 +1,28 @@
 package Server.Commands;
 
-import Client.Net.ClientNetManager;
-import Model.Classes.Product;
-import View.InputReader;
-import common.Model.Enums.CommandType; // импорт общего enum
-import Server.Net.CommandRequest;
-import Server.Net.CommandResponse;
+import Common.Model.Classes.Product;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-public class AddCommand implements Command {
-    public static final String name = "add";
-    private final InputReader inputReader;
-    private final ClientNetManager netManager;
-
-    public AddCommand(InputReader inputReader, ClientNetManager netManager) {
-        this.inputReader = inputReader;
-        this.netManager = netManager;
-    }
-
+public class AddServerCommand implements ServerCommand {
     @Override
-    public boolean execute(String[] args) {
-        try {
-            System.out.println("Введите данные нового продукта:");
-            Product product = inputReader.readProduct();
-            // ID и Organization ID будут сгенерированы на сервере, поэтому здесь их не устанавливаем
-            product.setId(null);
-            if (product.getManufacturer() != null) {
-                product.getManufacturer().setId(null);
-            }
-
-            CommandRequest request = new CommandRequest(CommandType.ADD, product);
-            CommandResponse response = netManager.sendRequest(request);
-            System.out.println(response.getMessage());
-            return response.isSuccess();
-        } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
-            return false;
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
+        Object arg = request.getArgument();
+        if (!(arg instanceof Product)) {
+            return new CommandResponse(false, "Аргумент должен быть Product");
         }
-    }
-
-    @Override
-    public String getDescription() {
-        return "Добавить новый элемент в коллекцию";
-    }
-
-    @Override
-    public String getName() {
-        return name;
+        Product product = (Product) arg;
+        Long newId = collectionManager.getFirstNotUsedIdProduct();
+        product.setId(newId);
+        if (product.getManufacturer() != null) {
+            product.getManufacturer().setId(collectionManager.getFirstNotUsedIdOrganization());
+        }
+        if (collectionManager.addProduct(product)) {
+            return new CommandResponse(true, "Продукт добавлен, ID = " + newId);
+        } else {
+            return new CommandResponse(false, "Не удалось добавить продукт");
+        }
     }
 }

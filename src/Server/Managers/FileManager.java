@@ -1,11 +1,10 @@
-package src.Server.Managers;
+package Server.Managers;
 
-import Server.Model.Classes.*;
-import Server.Model.Enums.*;
-import Server.Model.Validator.Validator;
+import Common.Model.Classes.*;
+import Common.Model.Enums.*;
+import Common.Model.Validator.Validator;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVParser;
-import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvException;
 
 import java.io.*;
@@ -13,9 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class FileManager  {
     private final String PATH;
@@ -74,6 +71,9 @@ public class FileManager  {
         return true;
     }
 
+    public boolean validateWritingReadingFile() {
+        return (validateForWritingFile() || validateForReadingFile());
+    }
     private Long parseLong(String num, String field) {
         Long id;
         try {
@@ -232,7 +232,7 @@ public class FileManager  {
 
         product.setPrice(parseFloat(line[partNumber++], fields[partNumber - 1]));
 
-        product.setUnitOfMeasure(parseEnum(Client.Model.Enums.UnitOfMeasure.class, line[partNumber++], fields[partNumber - 1]));
+        product.setUnitOfMeasure(parseEnum(Common.Model.Enums.UnitOfMeasure.class, line[partNumber++], fields[partNumber - 1]));
 
         product.setManufacturer(parseOrganization(line,fields, partNumber));
 
@@ -241,6 +241,8 @@ public class FileManager  {
 
     //подключить библиотеку csv
     public PriorityQueue<Product> readCollection() {
+        Set<Long> usedProductIds = new HashSet<>();
+        Set<Long> usedOrgIds = new HashSet<>();
         List<Product> products = new ArrayList<>();
 
         if (!validateForReadingFile()) {
@@ -279,11 +281,23 @@ public class FileManager  {
                 try {
                     Product product = parseProduct(line, new CSVParser().parseLine(head));
                     if (product != null) {
-                        if (validator.validateWithIdProduct(product)) {
-                            products.add(product);
-                        } else {
+                        if (!validator.validateWithIdProduct(product)) {
                             System.err.println("Product на строке: " + lineNumber + ". Product пропущен из-за некорректных значений полей.");
+                            continue;
                         }
+                        if (usedProductIds.contains(product.getId())) {
+                            System.err.println("Продукт с ID " + product.getId() + " уже загружен. Пропуск.");
+                            continue;
+                        }
+                        if (product.getManufacturer() != null && usedOrgIds.contains(product.getManufacturer().getId())) {
+                            System.err.println("Организация с ID " + product.getManufacturer().getId() + " уже использована. Пропуск.");
+                            continue;
+                        }
+                        usedProductIds.add(product.getId());
+                        if (product.getManufacturer() != null) {
+                            usedOrgIds.add(product.getManufacturer().getId());
+                        }
+                        products.add(product);
                     } else {
                         System.err.println("Product на  строке: " + lineNumber + ". Product пропущен из-за ошибок парсинга.");
                     }

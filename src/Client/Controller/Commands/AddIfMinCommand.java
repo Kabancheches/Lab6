@@ -1,60 +1,44 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-import Model.Classes.Organization;
-import Model.Classes.Product;
-import Model.Managers.CollectionManager;
-import View.InputReader;
-
-import java.util.PriorityQueue;
+import Common.Model.Classes.Product;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
+import Client.View.InputReader;
 
 public class AddIfMinCommand implements Command {
-    public static String name = "";
-    private final CollectionManager collectionManager;
+    public static final String name = "add_if_min";
     private final InputReader inputReader;
+    private final ClientNetManager netManager;
 
-    public AddIfMinCommand(CollectionManager collectionManager, InputReader inputReader) {
-        this.collectionManager = collectionManager;
+    public AddIfMinCommand(InputReader inputReader, ClientNetManager netManager) {
         this.inputReader = inputReader;
-    }
-
-    private boolean ifLowerThanMin(Product product) {
-        float productPrice = product.getPrice();
-        PriorityQueue<Product> collectionCopy = collectionManager.getCollection();
-        for (int i = 0;i < collectionCopy.size(); i++){
-            if (productPrice > collectionCopy.poll().getPrice()){
-                return false;
-            }
-        }
-        return true;
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
         try {
+            System.out.println("Введите продукт для сравнения:");
             Product product = inputReader.readProduct();
-            product.setId(collectionManager.getFirstNotUsedIdProduct());
-            Organization manufacturer = product.getManufacturer();
-            if (manufacturer != null) {
-                manufacturer.setId(collectionManager.getFirstNotUsedIdOrganization());
+            product.setId(null);
+            if (product.getManufacturer() != null) {
+                product.getManufacturer().setId(null);
             }
-
-            if (ifLowerThanMin(product)) {
-                collectionManager.addProduct(product);
-                System.out.println("Продукт добавлен (его цена меньше минимальной).");
-                return true;
-            } else {
-                System.out.println("Продукт не добавлен (его цена больше минимальной).");
-                return false;
-            }
+            CommandRequest request = new CommandRequest(CommandType.ADD_IF_MIN, product);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
         } catch (Exception e) {
-            System.out.println("[ОШИБКА] " + e.getMessage());
+            System.err.println("Ошибка: " + e.getMessage());
             return false;
         }
     }
 
     @Override
     public String getDescription() {
-        return "Добавить новый элемент, если его значение меньше наименьшего";
+        return "Добавить элемент, если его цена меньше минимальной";
     }
 
     @Override

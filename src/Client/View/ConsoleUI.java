@@ -1,4 +1,4 @@
-package src.Client.View;
+package Client.View;
 
 
 public class ConsoleUI {

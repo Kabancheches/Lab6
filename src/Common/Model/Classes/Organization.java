@@ -1,10 +1,13 @@
-package Client.Model.Classes;
+package Common.Model.Classes;
 
 
-import Client.Model.Enums.OrganizationType;
+import Common.Model.Enums.OrganizationType;
+
+import java.io.Serializable;
 
 
-public class Organization {
+public class Organization implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Long id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой
     private String fullName; //Строка не может быть пустой, Поле не может быть null

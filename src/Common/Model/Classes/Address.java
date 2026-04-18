@@ -1,8 +1,10 @@
-package Client.Model.Classes;
+package Common.Model.Classes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Address {
+public class Address implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String street; //Поле может быть null
     private Location town; //Поле может быть null
 

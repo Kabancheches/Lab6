@@ -1,11 +1,13 @@
-package Client.Model.Classes;
+package Common.Model.Classes;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import Client.Model.Enums.UnitOfMeasure;
+import Common.Model.Enums.UnitOfMeasure;
 
-public class Product  implements Comparable<Product> {
+public class Product  implements Comparable<Product>, Serializable {
+    private static final long serialVersionUID = 1L;
     private Long id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой
     private Coordinates coordinates; //Поле не может быть null

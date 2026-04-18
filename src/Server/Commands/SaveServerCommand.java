@@ -1,41 +1,18 @@
 package Server.Commands;
 
-import Model.Managers.CollectionManager;
-import Model.Managers.FileManager;
+import Server.Managers.CollectionManager;
+import Server.Managers.FileManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
-public class SaveCommand implements Command {
-    public static String name = "save";
-    private final CollectionManager collectionManager;
-    private final FileManager fileManager;
-
-    public SaveCommand(CollectionManager collectionManager, FileManager fileManager) {
-        this.collectionManager = collectionManager;
-        this.fileManager = fileManager;
-    }
-
+public class SaveServerCommand implements ServerCommand {
     @Override
-    public boolean execute(String[] args) {
-        try {
-            if (fileManager.saveCollection(collectionManager.getCollection())) {
-                System.out.println("Коллекция успешно сохранена в файл.");
-                return true;
-            } else {
-                System.err.println("[ОШИБКА] Не удалось сохранить коллекцию.");
-                return false;
-            }
-        } catch (Exception e) {
-            System.err.println("[ОШИБКА] Ошибка при сохранении: " + e.getMessage());
-            return false;
+    public CommandResponse execute(CommandRequest request, CollectionManager collectionManager, FileManager fm) {
+        boolean saved = fm.saveCollection(collectionManager.getCollection());
+        if (saved) {
+            return new CommandResponse(true, "Коллекция сохранена в файл");
+        } else {
+            return new CommandResponse(false, "Ошибка при сохранении коллекции");
         }
-    }
-
-    @Override
-    public String getDescription() {
-        return "Сохранить коллекцию в файл";
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 }

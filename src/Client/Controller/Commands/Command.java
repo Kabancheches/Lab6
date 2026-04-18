@@ -1,4 +1,4 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
 public interface Command {
     boolean execute(String[] args);

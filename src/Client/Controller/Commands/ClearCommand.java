@@ -1,21 +1,29 @@
-package src.Server.Controller.Commands;
+package Client.Controller.Commands;
 
-
-import Model.Managers.CollectionManager;
+import Common.Model.Enums.CommandType;
+import Client.Net.ClientNetManager;
+import Common.Net.CommandRequest;
+import Common.Net.CommandResponse;
 
 public class ClearCommand implements Command {
-    public static String name = "clear";
-    private final CollectionManager collectionManager;
+    public static final String name = "clear";
+    private final ClientNetManager netManager;
 
-    public ClearCommand(CollectionManager collectionManager) {
-        this.collectionManager = collectionManager;
+    public ClearCommand(ClientNetManager netManager) {
+        this.netManager = netManager;
     }
 
     @Override
     public boolean execute(String[] args) {
-        collectionManager.clear();
-        System.out.println("Коллекция успешно очищена.");
-        return true;
+        try {
+            CommandRequest request = new CommandRequest(CommandType.CLEAR, null);
+            CommandResponse response = netManager.sendRequest(request);
+            System.out.println(response.getMessage());
+            return response.isSuccess();
+        } catch (Exception e) {
+            System.err.println("Ошибка: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override
