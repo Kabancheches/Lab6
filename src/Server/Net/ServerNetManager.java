@@ -132,13 +132,4 @@ public class ServerNetManager {
         }
         System.out.println();
     }
-
-    public void close() {
-        try {
-            selector.close();
-            channel.close();
-        } catch (IOException e) {
-            System.err.println("Ошибка при закрытии канала: " + e.getMessage());
-        }
-    }
 }

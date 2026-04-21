@@ -3,7 +3,6 @@ package Client;
 import Client.Controller.CommandManager;
 import Client.Controller.Commands.*;
 import Client.Net.ClientNetManager;
-import Client.View.ConsoleUI;
 import Client.View.InputReader;
 import Common.Model.Enums.CommandType;
 import Common.Net.CommandRequest;
