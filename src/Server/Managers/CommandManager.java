@@ -4,11 +4,12 @@ import Common.Model.Enums.CommandType;
 import Server.Commands.*;
 import Common.Net.CommandRequest;
 import Common.Net.CommandResponse;
+import Server.Net.CommandDispatcher;
 
 import java.util.EnumMap;
 import java.util.Map;
 
-public class CommandManager {
+public class CommandManager implements CommandDispatcher {
     private final Map<CommandType, ServerCommand> commands = new EnumMap<>(CommandType.class);
     private final CollectionManager collectionManager;
     private final FileManager fileManager;

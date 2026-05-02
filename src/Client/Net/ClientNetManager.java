@@ -2,57 +2,24 @@ package Client.Net;
 
 import Common.Net.CommandRequest;
 import Common.Net.CommandResponse;
+import Common.Net.Serializer;
 
-import java.io.*;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.io.IOException;
 
 public class ClientNetManager {
-    private final String host;
-    private final int port;
-    private final DatagramSocket socket;
+    private final UdpClientChannel channel;
 
     public ClientNetManager(String host, int port) throws IOException {
-        this.host = host;
-        this.port = port;
-        this.socket = new DatagramSocket();
-        socket.setSoTimeout(5000);
-    }
-
-    private byte[] serialize(Object obj) throws IOException {
-        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(bytes)) {
-            oos.writeObject(obj);
-            return bytes.toByteArray();
-        }
-    }
-
-    private Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
-        try (ByteArrayInputStream bytesOut = new ByteArrayInputStream(data);
-             ObjectInputStream ois = new ObjectInputStream(bytesOut)) {
-            return ois.readObject();
-        }
+        this.channel = new UdpClientChannel(host, port);
     }
 
     public CommandResponse sendRequest(CommandRequest request) throws IOException, ClassNotFoundException {
-        byte[] sendData = serialize(request);
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
-                InetAddress.getByName(host), port);
-        socket.send(sendPacket);
-
-        byte[] receiveBuffer = new byte[65535];
-        DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-        socket.receive(receivePacket);
-
-        byte[] data = new byte[receivePacket.getLength()];
-        System.arraycopy(receivePacket.getData(), 0, data, 0, data.length);
-        return (CommandResponse) deserialize(data);
+        byte[] requestData = Serializer.serialize(request);
+        byte[] responseData = channel.sendAndReceive(requestData);
+        return (CommandResponse) Serializer.deserialize(responseData);
     }
 
     public void close() {
-        if (socket != null && !socket.isClosed()) {
-            socket.close();
-        }
+        channel.close();
     }
 }

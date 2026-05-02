@@ -62,7 +62,6 @@ public class CollectionManager {
     }
 
     public boolean checkIsIdUsed(ArrayList<Long> idList, Product product) {
-        boolean bool = true;
         Long productId = product.getId();
         return idList.stream().anyMatch(id -> Objects.equals(id,productId));
     }

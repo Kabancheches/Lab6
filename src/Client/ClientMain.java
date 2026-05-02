@@ -56,7 +56,7 @@ public class ClientMain {
             try {
                 response = netManager.sendRequest(testRequest);
             } catch (ClassNotFoundException e) {
-                System.out.println("Этого не должно было произойти" +e.getMessage());
+                System.out.println("Этого не должно было произойти " +e.getMessage());
             }
             if (response != null && response.isSuccess()) {
                 System.out.println("Соединение установлено. Введите 'help' для справки.");

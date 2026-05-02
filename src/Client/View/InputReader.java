@@ -23,7 +23,8 @@ public class InputReader {
     }
 
     public int readInt(String prompt) throws IOException {
-        while (true) {
+        boolean flag = true;
+        while (flag) {
             System.out.print(prompt);
             String input = readLine().trim();
 
@@ -42,10 +43,12 @@ public class InputReader {
 
             return value;
         }
+        return -52;
     }
 
     public float readFloat(String prompt) throws IOException, IllegalArgumentException {
-        while (true) {
+        boolean flag = true;
+        while (flag) {
             System.out.print(prompt);
             String input = readLine().trim();
 
@@ -63,10 +66,12 @@ public class InputReader {
             }
             return value;
         }
+        return -52;
     }
 
     public Long readLong(String prompt) throws IOException {
-        while (true) {
+        boolean flag = true;
+        while (flag) {
             System.out.print(prompt);
             String input = readLine().trim();
 
@@ -84,6 +89,7 @@ public class InputReader {
             }
             return value;
         }
+        return -52l;
     }
 
 

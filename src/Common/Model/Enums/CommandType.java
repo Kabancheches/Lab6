@@ -13,7 +13,6 @@ public enum CommandType implements Serializable {
     CLEAR("clear"),
     SAVE("save"),
     EXIT("exit"),
-    SERVEREXIT("exit"),
     ADD_IF_MIN("add_if_min"),
     REMOVE_GREATER("remove_greater"),
     REMOVE_LOWER("remove_lower"),
